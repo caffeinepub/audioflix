@@ -1,11 +1,28 @@
 import { Heart } from "lucide-react";
 import { SiInstagram, SiSpotify } from "react-icons/si";
 import { useAppContext } from "../context/AppContext";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+
+const OWNER_PRINCIPAL =
+  "osefq-ix4ug-7frr4-b6wja-g32j3-iuzrq-gd7bf-3q52s-jxqjr-vy27l-3ae";
 
 export function Footer() {
   const { navigate, setAboutOwnerOpen } = useAppContext();
+  const { identity } = useInternetIdentity();
   const year = new Date().getFullYear();
   const hostname = encodeURIComponent(window.location.hostname);
+
+  const fullPrincipal = identity ? identity.getPrincipal().toString() : "";
+  const isOwner = fullPrincipal === OWNER_PRINCIPAL;
+
+  const navLinks = [
+    { label: "Home", action: () => navigate("home") },
+    ...(isOwner
+      ? [{ label: "Upload Content", action: () => navigate("upload") }]
+      : []),
+    { label: "About", action: () => navigate("about") },
+    { label: "About Owner", action: () => setAboutOwnerOpen(true) },
+  ];
 
   return (
     <footer className="border-t border-border bg-card/50 mt-16">
@@ -40,12 +57,7 @@ export function Footer() {
               Navigation
             </h4>
             <ul className="space-y-2">
-              {[
-                { label: "Home", action: () => navigate("home") },
-                { label: "Upload Content", action: () => navigate("upload") },
-                { label: "About", action: () => navigate("about") },
-                { label: "About Owner", action: () => setAboutOwnerOpen(true) },
-              ].map((link) => (
+              {navLinks.map((link) => (
                 <li key={link.label}>
                   <button
                     type="button"

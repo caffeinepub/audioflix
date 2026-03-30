@@ -1,20 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Copy,
-  LogIn,
-  LogOut,
-  Menu,
-  Search,
-  Upload,
-  User,
-  X,
-} from "lucide-react";
+import { LogIn, LogOut, Menu, Search, Upload, User, X } from "lucide-react";
 import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import type { DisplayContent } from "../context/AppContext";
 import { SAMPLE_CONTENT } from "../data/sampleContent";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+
+const OWNER_PRINCIPAL =
+  "osefq-ix4ug-7frr4-b6wja-g32j3-iuzrq-gd7bf-3q52s-jxqjr-vy27l-3ae";
 
 export function Header() {
   const { navigate, setLoginModalOpen } = useAppContext();
@@ -23,17 +17,11 @@ export function Header() {
   const [searchResults, setSearchResults] = useState<DisplayContent[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const isLoggedIn = !!identity;
   const isLoggingIn = loginStatus === "logging-in";
   const fullPrincipal = identity ? identity.getPrincipal().toString() : "";
-
-  const handleCopyPrincipal = () => {
-    navigator.clipboard.writeText(fullPrincipal);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const isOwner = fullPrincipal === OWNER_PRINCIPAL;
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -59,21 +47,6 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/90 to-transparent backdrop-blur-sm border-b border-white/5">
-      {/* Temporary: Show full principal for owner setup */}
-      {isLoggedIn && (
-        <div className="bg-yellow-500/20 border-b border-yellow-500/30 px-4 py-1.5 flex items-center justify-center gap-2 text-xs text-yellow-300">
-          <span className="font-mono">{fullPrincipal}</span>
-          <button
-            type="button"
-            onClick={handleCopyPrincipal}
-            className="flex items-center gap-1 bg-yellow-500/20 hover:bg-yellow-500/40 px-2 py-0.5 rounded transition-colors"
-          >
-            <Copy className="h-3 w-3" />
-            {copied ? "Copied!" : "Copy"}
-          </button>
-        </div>
-      )}
-
       <div className="max-w-screen-xl mx-auto px-4 h-16 flex items-center gap-4">
         {/* Logo */}
         <button
@@ -97,16 +70,16 @@ export function Header() {
           >
             Home
           </button>
-          <button
-            type="button"
-            data-ocid="upload.link"
-            onClick={() =>
-              isLoggedIn ? navigate("upload") : setLoginModalOpen(true)
-            }
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Upload
-          </button>
+          {isOwner && (
+            <button
+              type="button"
+              data-ocid="upload.link"
+              onClick={() => navigate("upload")}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Upload
+            </button>
+          )}
           <button
             type="button"
             data-ocid="about.link"
@@ -172,15 +145,17 @@ export function Header() {
         {/* Auth Button */}
         {isLoggedIn ? (
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              data-ocid="upload.button"
-              onClick={() => navigate("upload")}
-              className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Upload className="h-4 w-4" />
-              <span>Upload</span>
-            </button>
+            {isOwner && (
+              <button
+                type="button"
+                data-ocid="upload.button"
+                onClick={() => navigate("upload")}
+                className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+                <span>Upload</span>
+              </button>
+            )}
             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-secondary rounded-full px-3 py-1.5">
               <User className="h-3 w-3" />
               <span className="hidden md:block">
@@ -276,16 +251,18 @@ export function Header() {
             >
               🏠 Home
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                isLoggedIn ? navigate("upload") : setLoginModalOpen(true);
-                setMobileMenuOpen(false);
-              }}
-              className="text-left text-sm text-foreground py-2"
-            >
-              🎙️ Upload Content
-            </button>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => {
+                  navigate("upload");
+                  setMobileMenuOpen(false);
+                }}
+                className="text-left text-sm text-foreground py-2"
+              >
+                🎙️ Upload Content
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {
